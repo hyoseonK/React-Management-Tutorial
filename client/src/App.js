@@ -8,6 +8,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import {withStyles} from '@material-ui/core/styles';
+import { brotliCompressSync } from 'zlib';
 
 const styles = theme => ({ 
   //너비가 100프로, 너비 여백을 3의 가중치만큼, x쪽으로 오토를 넣어줌. 
@@ -20,35 +21,29 @@ const styles = theme => ({
   table: {
     minWidth: 1080
   }
-})
-
-const customers=[{
-  'id':1,
-  'image':'https://placeimg.com/64/64/1',//이미지를 랜덤으로 보여주는 웹사이트(이미지 사이즈:64*64)
-  'name':'홍길동',
-  'birthday':'950826',
-  'gender':'남자',
-  'job':'대학생'
-},
-{
-  'id':2,
-  'image':'https://placeimg.com/64/64/2',//이미지를 랜덤으로 보여주는 웹사이트(이미지 사이즈:64*64)
-  'name':'김효선',
-  'birthday':'950825',
-  'gender':'여자',
-  'job':'대학생'
-},
-{
-  'id':3,
-  'image':'https://placeimg.com/64/64/3',//이미지를 랜덤으로 보여주는 웹사이트(이미지 사이즈:64*64)
-  'name':'이순신',
-  'birthday':'950808',
-  'gender':'여자',
-  'job':'회사원'
-}]
-
+});
 
 class App extends React.Component{
+  //변경될 수 있는 변수를 처리하고자 할 때 state
+  state = {
+    customers: ""
+  }
+
+  //모든 컴포넌트가 실제로 마운트가 완료 되었을 때 실행되는 부분
+  //res라는 이름으로 변수가 바뀌고 customers라는 state 변수로 저장된다
+  componentDidMount(){
+     this.callApi()
+         .then(res => this.setState({customers: res}))
+         .catch(err => console.log(err));
+  }
+
+  callApi = async () => {
+    //접속하고자하는 api의 주소
+    const response = await fetch('/api/customers');
+    const body = await response.json();
+    return body;
+  }
+
   render(){
     const { classes } = this.props; //위의 style이 적용될 수 있도록
     return(
@@ -65,7 +60,7 @@ class App extends React.Component{
             </TableRow>
           </TableHead>
           <TableBody>
-          {customers.map(c => {
+          {this.state.customers ? this.state.customers.map(c => {
             return (<Customer
               key={c.id}
               id={c.id}
@@ -74,7 +69,7 @@ class App extends React.Component{
               birthday={c.birthday}
               gender={c.gender}
               job={c.job}/>)
-          })
+          }) : ""
         }
           </TableBody>
         </Table>
