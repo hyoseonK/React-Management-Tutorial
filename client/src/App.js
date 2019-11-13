@@ -8,7 +8,24 @@ import TableBody from '@material-ui/core/TableBody';
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import {withStyles} from '@material-ui/core/styles';
-import { brotliCompressSync } from 'zlib';
+import CircularProgress from '@material-ui/core/CircularProgress';
+
+/*
+
+1) constructor()
+
+2) componentWillMount()
+
+3) render()
+
+4) componentDidMount()
+
+*/
+
+/*
+component의 props혹은 state가 변경되는 경우에는 => shouldComponentUpdate()함수 등이 사용
+실질적으로 다시 render함수를 불러와서 자동갱신함
+*/
 
 const styles = theme => ({ 
   //너비가 100프로, 너비 여백을 3의 가중치만큼, x쪽으로 오토를 넣어줌. 
@@ -20,18 +37,24 @@ const styles = theme => ({
   },
   table: {
     minWidth: 1080
+  },
+  progress: {
+    margin: theme.spacing.unit * 2
   }
 });
 
 class App extends React.Component{
   //변경될 수 있는 변수를 처리하고자 할 때 state
   state = {
-    customers: ""
+    customers: "",
+    completed : 0
   }
 
   //모든 컴포넌트가 실제로 마운트가 완료 되었을 때 실행되는 부분
   //res라는 이름으로 변수가 바뀌고 customers라는 state 변수로 저장된다
+  //api를 비동기적으로 호출함
   componentDidMount(){
+     this.timer = setInterval(this.progress, 20);
      this.callApi()
          .then(res => this.setState({customers: res}))
          .catch(err => console.log(err));
@@ -42,6 +65,11 @@ class App extends React.Component{
     const response = await fetch('/api/customers');
     const body = await response.json();
     return body;
+  }
+
+  progress = () => {
+    const { completed } = this.state;
+    this.setState({ completed: completed >= 100 ? 0 : completed + 1})
   }
 
   render(){
@@ -69,7 +97,13 @@ class App extends React.Component{
               birthday={c.birthday}
               gender={c.gender}
               job={c.job}/>)
-          }) : ""
+          }) : 
+          <TableRow>
+            <TableCell colSpan="6" align="center">
+              <CircularProgress className={classes.progress} variant="determinate" value={this.state.completed}/>
+            </TableCell>
+          </TableRow>
+
         }
           </TableBody>
         </Table>
